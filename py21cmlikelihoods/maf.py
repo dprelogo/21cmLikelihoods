@@ -6,7 +6,6 @@ import pickle
 tfd = tfp.distributions
 tfb = tfp.bijectors
 
-# TODO: saving and loading of the model
 class MaskedAutoregressiveFlow:
     """Masked Autoregressive Flow, series of MADE bijectors.
 
@@ -22,6 +21,15 @@ class MaskedAutoregressiveFlow:
         bias_initializer: initializer for biases, see `tfb.AutoregressiveNetwork`.
         kernel_regularizer: weights' regularizer, see `tfb.AutoregressiveNetwork`.
         bias_regularizer: biases' regularizer, see `tfb.AutoregressiveNetwork`.
+
+    Attributes:
+        train: training the NDE
+        compile: compiling the keras model
+        save: saving the model
+        load: loading the model
+        log_prob: log-probability of the likelihood for samples
+        prob: probability of the likelihood for samples
+        sample: sampling the likelihood for the fixed conditional
     """
 
     def __init__(
@@ -175,6 +183,15 @@ class ConditionalMaskedAutoregressiveFlow(MaskedAutoregressiveFlow):
         bias_initializer: initializer for biases, see `tfb.AutoregressiveNetwork`.
         kernel_regularizer: weights' regularizer, see `tfb.AutoregressiveNetwork`.
         bias_regularizer: biases' regularizer, see `tfb.AutoregressiveNetwork`.
+
+    Attributes:
+        train: training the NDE
+        compile: compiling the keras model
+        save: saving the model
+        load: loading the model
+        log_prob: log-probability of the likelihood for samples
+        prob: probability of the likelihood for samples
+        sample: sampling the likelihood for the fixed conditional
     """
 
     def __init__(

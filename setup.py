@@ -23,5 +23,6 @@ setup(
         "tensorflow",
         "tensorflow-probability",
         "numpy",
+        "h5py",
     ],
 )

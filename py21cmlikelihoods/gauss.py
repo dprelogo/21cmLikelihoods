@@ -9,26 +9,73 @@ tfb = tfp.bijectors
 
 # TODO: make bias initializer option
 class ConditionalGaussian(tfd.Distribution):
+    """Conditional Gaussian NDE distribution.
+
+    Args:
+        n_parameters (int): dimensionality of the parameter space.
+        n_data (int): dimensionality of the data space.
+        covariance (array): the covariance to use.
+            It can be either 1D or 2D array, depending if full covariance or just
+            diagonal is keeping fixed. If not specified, the covariance is fitted across
+            the parameter space.
+        exponentiate (bool): In the case `covariance` is fixed, it controls if the final output
+            of the NN should be exponentiated in order to match the space
+            in which the covariance has been calculated. If `z` is the vector outputted
+            by the NN and `exponentiate is True`, then final output is `exp(z)`.
+        mean (array): should the final output of the NN be shifted by some mean vector?
+            This allows for the non-zero mean data to be passed as a training data to the network,
+            while keeping nice properties of better training when the data is zero-mean.
+        std (array): should the final output of the NN be scaled by some standard deviation?
+            This allows for not normalized data to be passed as a training data to the network,
+            while keeping nice properties of better training when the data is normalized.
+            Furthermore, it will give correctly normalized log-likelihoods.
+            With `mean` and `std` specified and `z` the output vector of the NN,
+            the final output will be `std * z + mean` or `std * exp(z) + mean`
+            if `exponentiate is True`.
+        diagonal_covariance (bool): to fit diagonal covariance or full covariance.
+            It is used only if the `covariance` is not specified, i.e. it has to be fitted.
+        n_hidden (list): specify the number of hidden layers and number of neurons
+            in the fully-connected network going from parameter space to data space.
+        activation (tf.keras.activations, tf.keras.layers): `keras` activation function to use.
+        optimizer (tf.optimizers.Optimizer): `keras` optimizer to use.
+        kernel_initializer (callable): function to initialize kernels.
+        final_bias_initializer (str): gives a fine control over what bias initializer
+            should be used in the final layer. Common choices are "zeros" or "ones".
+        dtype: see `tfd.Distribution`.
+        reparametrization_type: see `tfd.Distribution`.
+        validate_args: see `tfd.Disitrbution`.
+        allow_nan_stats: see `tfd.Distribution`.
+
+    Attributes:
+        train: training the NDE
+        compile: compiling the keras model
+        save: saving the model
+        load: loading the model
+        log_prob: log-probability of the likelihood for samples
+        prob: probability of the likelihood for samples
+        sample: sampling the likelihood for the fixed conditional
+    """
     def __init__(
         self,
         n_parameters,
         n_data,
         covariance=None,
-        diagonal_covariance=False,
-        n_hidden=[50, 50],
         exponentiate=False,
         mean=None,
         std=None,
+        diagonal_covariance=False,
+        n_hidden=[50, 50],
         activation=tf.keras.layers.LeakyReLU(0.01),
         optimizer=tf.optimizers.Adam(1e-3),
-        dtype=tf.float32,
-        reparameterization_type=None,
-        validate_args=False,
-        allow_nan_stats=True,
         kernel_initializer=partial(
             tf.keras.initializers.RandomNormal, mean=0.0, stddev=1e-5, seed=None
         ),
         final_bias_initializer="zeros",
+        dtype=tf.float32,
+        reparameterization_type=None,
+        validate_args=False,
+        allow_nan_stats=True,
+
     ):
         super().__init__(
             dtype=dtype,
@@ -86,6 +133,30 @@ class ConditionalGaussian(tfd.Distribution):
         callbacks=None,
         pretrain_callbacks=None,
     ):
+        """Training the likelihood.
+
+        It allows for two-phase traininig, in which pre-training fits only
+        the Gaussian mean, and train jointly fits mean and covariance
+        (ambiguous for the case of fixed covariance case).
+
+        Args:
+            epochs (int): number of epochs to train.
+            dataset (tf.dataset.Dataset): batched training dataset of 
+                `(parameters, data)` pairs.
+            dataset_val (tf.dataset.Dataset): batched validation dataset of
+                `(parameters, data)` pairs.
+            verbose (int): verbosity of the output during the training.
+            pretrain (bool): if `True`, runs pretraining of the mean.
+            pretrain_epochs (int): number of pretraining epochs.
+            pretrain_optimizer (tf.optimizers.Optimizer): if specified, a separate optimizer will
+                be used for pretraining.
+            save (bool): either to save model or not.
+            save_history (bool): either to save training history or not.
+            filename (str): base filename.
+            callbacks (list): list of keras callbacks called during training
+            pretrain_callbacks (list): list of keras callbacks called during pre-training.
+        
+        """
         if pretrain:
             self.compile(new_optimizer=pretrain_optimizer, pretrain_phase=True)
             pretrain_epochs = epochs if pretrain_epochs is None else pretrain_epochs
@@ -128,6 +199,16 @@ class ConditionalGaussian(tfd.Distribution):
         return tf.reduce_sum(squared_difference, axis=-1)
 
     def compile(self, new_optimizer=None, pretrain_phase=True):
+        """Compiling the model.
+
+        Args:
+            new_optimizer (tf.optimizers.Optimizer): if specified, the model is
+                compiled with that particular optimizer, otherwise it is compiled
+                with the one specified with the particular class instance.
+            pretrain_phase (bool): if the compilation is done for the pre-training
+                phase or not. If yes, it uses pre-training loss function, otherwise
+                it uses the main loss.
+        """
         loss = self._loss_pretrain if pretrain_phase else self._loss
         optimizer = self.optimizer if new_optimizer is None else new_optimizer
         self.model.compile(optimizer=optimizer, loss=loss)
@@ -167,24 +248,10 @@ class ConditionalGaussian(tfd.Distribution):
                         2 * self.n_data,
                         kernel_initializer=kernel_initializer(),
                         bias_initializer=final_bias_initializer,
-                        # kernel_initializer=tf.keras.initializers.zeros(),
-                        # bias_initializer=tf.keras.initializers.ones(),
                     )
                 )
                 model.add(
                     tf.keras.layers.Lambda(
-                        # lambda x: tf.concat(
-                        #     [
-                        #         x[..., : self.n_data],
-                        #         tf.keras.activations.relu(
-                        #             x[..., self.n_data :],
-                        #             max_value=1e1,
-                        #             threshold=1e-6,
-                        #             alpha=1e-3,
-                        #         ),
-                        #     ],
-                        #     -1,
-                        # )
                         lambda x: tf.concat(
                             [x[..., : self.n_data], x[..., self.n_data :] ** 2],
                             -1,
@@ -206,8 +273,6 @@ class ConditionalGaussian(tfd.Distribution):
                         tfp.layers.MultivariateNormalTriL.params_size(self.n_data),
                         kernel_initializer=kernel_initializer(),
                         bias_initializer=final_bias_initializer,
-                        # kernel_initializer=tf.keras.initializers.zeros(),
-                        # bias_initializer=tf.keras.initializers.ones(),
                     )
                 )
                 model.add(
@@ -228,7 +293,6 @@ class ConditionalGaussian(tfd.Distribution):
             model.add(
                 tf.keras.layers.Dense(
                     self.n_data,
-                    # activation=last_activation,
                     kernel_initializer=kernel_initializer(),
                 )
             )
@@ -249,13 +313,31 @@ class ConditionalGaussian(tfd.Distribution):
         return model
 
     def save(self, filename="model"):
+        """Saving the model."""
         self.model.save_weights(filename + ".h5")
 
     def load(self, filename="model"):
+        """Loading the model."""
         self.model.load_weights(filename + ".h5")
         self.compile(pretrain_phase=False)
 
     def log_prob(self, x, conditional, x_in_final_space=False):
+        """Log-probability of the likelihood for a set of samples.
+        
+        Args:
+            x (array): of shape `(N, n_data)`, data samples for which to
+                compute log-probability.
+            conditional (array): of shape `(N, n_parameters)`, parameters of the
+                data samples for which to compute log-probability.
+            x_in_final_space (bool): are data samples in the "final space" or not.
+                This is valid only if `exponentiate` and/or (`mean` and `std`)
+                have been specified. For instance, if z is the output of the NN
+                and the final output is `std * exp(z) + mean`, this flag specifies
+                if the data samples are in z-space or final space.
+
+        Returns:
+            Array of `(N,)` log-likelihoods.
+        """
         x = tf.cast(x, self._dtype)
         if not x_in_final_space:
             if self.last_transformation is not None:
@@ -275,6 +357,22 @@ class ConditionalGaussian(tfd.Distribution):
         return prob
 
     def prob(self, x, conditional, x_in_final_space=False):
+        """Probability of the likelihood for a set of samples.
+        
+        Args:
+            x (array): of shape `(N, n_data)`, data samples for which to
+                compute log-probability.
+            conditional (array): of shape `(N, n_parameters)`, parameters of the
+                data samples for which to compute log-probability.
+            x_in_final_space (bool): are data samples in the "final space" or not.
+                This is valid only if `exponentiate` and/or (`mean` and `std`)
+                have been specified. For instance, if z is the output of the NN
+                and the final output is `std * exp(z) + mean`, this flag specifies
+                if the data samples are in z-space or final space.
+
+        Returns:
+            Array of `(N,)` likelihoods.
+        """
         x = tf.cast(x, self._dtype)
         if not x_in_final_space:
             if self.last_transformation is not None:
@@ -293,6 +391,20 @@ class ConditionalGaussian(tfd.Distribution):
         return prob
 
     def sample(self, s, conditional, result_in_final_space=True):
+        """Sampling the likelihood.
+
+        Args:
+            s (int): number of samples.
+            conditional (array): parameters on which to condition the samples.
+            result_in_final_space (bool): should samples be returned in "final space"
+                or not. This is valid only if `exponentiate` and/or (`mean` and `std`)
+                have been specified. For instance, if z is the output of the NN
+                and the final output is `std * exp(z) + mean`, this flag specifies
+                if the samples are returned in z-space or final space.
+
+        Returns:
+            Array of samples of shape `(N, n_data)`.
+        """
         conditional = tf.cast(conditional, self._dtype)
         squeeze = True if tf.rank(conditional) == 1 else False
         conditional = (
@@ -309,6 +421,33 @@ class ConditionalGaussian(tfd.Distribution):
 
 
 class ConditionalGaussianMixture(tfd.Distribution):
+    """Conditional Gaussian Mixture NDE distribution.
+
+    Args:
+        n_parameters (int): dimensionality of the parameter space.
+        n_data (int): dimensionality of the data space.
+        n_components (int): number of Gaussian Mixture components.
+        n_hidden (list): specify the number of hidden layers and number of neurons
+            in the fully-connected network going from parameter space to data space.
+        activation (tf.keras.activations.Activation, tf.keras.layers.Layer): `keras` activation function to use.
+        optimizer (tf.optimizers.Optimizer): `keras` optimizer to use.
+        kernel_initializer (callable): function to initialize kernels.
+        final_bias_initializer (str): gives a fine control over what bias initializer
+            should be used in the final layer. Common choices are "zeros" or "ones".
+        dtype: see `tfd.Distribution`.
+        reparametrization_type: see `tfd.Distribution`.
+        validate_args: see `tfd.Disitrbution`.
+        allow_nan_stats: see `tfd.Distribution`.
+
+    Attributes:
+        train: training the NDE
+        compile: compiling the keras model
+        save: saving the model
+        load: loading the model
+        log_prob: log-probability of the likelihood for samples
+        prob: probability of the likelihood for samples
+        sample: sampling the likelihood for the fixed conditional
+    """
     def __init__(
         self,
         n_parameters,
@@ -317,14 +456,14 @@ class ConditionalGaussianMixture(tfd.Distribution):
         n_hidden=[50, 50],
         activation=tf.keras.layers.LeakyReLU(0.01),
         optimizer=tf.optimizers.Adam(1e-3),
-        dtype=tf.float32,
-        reparameterization_type=None,
-        validate_args=False,
-        allow_nan_stats=True,
         kernel_initializer=partial(
             tf.keras.initializers.RandomNormal, mean=0.0, stddev=1e-5, seed=None
         ),
         final_bias_initializer="zeros",
+        dtype=tf.float32,
+        reparameterization_type=None,
+        validate_args=False,
+        allow_nan_stats=True,
     ):
         super().__init__(
             dtype=dtype,
@@ -364,6 +503,29 @@ class ConditionalGaussianMixture(tfd.Distribution):
         callbacks=None,
         pretrain_callbacks=None,
     ):
+        """Training the likelihood.
+
+        It allows for two-phase traininig, in which pre-training fits only
+        the Gaussian mean, and train jointly fits mean and covariance
+        (ambiguous for the case of fixed covariance case).
+
+        Args:
+            epochs (int): number of epochs to train.
+            dataset (tf.dataset.Dataset): batched training dataset of 
+                `(parameters, data)` pairs.
+            dataset_val (tf.dataset.Dataset): batched validation dataset of
+                `(parameters, data)` pairs.
+            verbose (int): verbosity of the output during the training.
+            pretrain (bool): if `True`, runs pretraining of the mean.
+            pretrain_epochs (int): number of pretraining epochs.
+            pretrain_optimizer (tf.optimizers.Optimizer): if specified, a separate optimizer will
+                be used for pretraining.
+            save (bool): either to save model or not.
+            save_history (bool): either to save training history or not.
+            filename (str): base filename.
+            callbacks (list): list of keras callbacks called during training
+            pretrain_callbacks (list): list of keras callbacks called during pre-training.
+        """
         if pretrain:
             self.compile(new_optimizer=pretrain_optimizer, pretrain_phase=True)
             pretrain_epochs = epochs if pretrain_epochs is None else pretrain_epochs
@@ -398,6 +560,16 @@ class ConditionalGaussianMixture(tfd.Distribution):
         return tf.reduce_sum(squared_difference, axis=-1)
 
     def compile(self, new_optimizer=None, pretrain_phase=True):
+        """Compiling the model.
+
+        Args:
+            new_optimizer (tf.optimizers.Optimizer): if specified, the model is
+                compiled with that particular optimizer, otherwise it is compiled
+                with the one specified with the particular class instance.
+            pretrain_phase (bool): if the compilation is done for the pre-training
+                phase or not. If yes, it uses pre-training loss function, otherwise
+                it uses the main loss.
+        """
         loss = self._loss_pretrain if pretrain_phase else self._loss
         optimizer = self.optimizer if new_optimizer is None else new_optimizer
         self.model.compile(optimizer=optimizer, loss=loss)
@@ -440,13 +612,26 @@ class ConditionalGaussianMixture(tfd.Distribution):
         return model
 
     def save(self, filename="model"):
+        """Saving the model."""
         self.model.save_weights(filename + ".h5")
 
     def load(self, filename="model"):
+        """Loading the model."""
         self.model.load_weights(filename + ".h5")
         self.compile()
 
     def log_prob(self, x, conditional):
+        """Log-probability of the likelihood for a set of samples.
+        
+        Args:
+            x (array): of shape `(N, n_data)`, data samples for which to
+                compute log-probability.
+            conditional (array): of shape `(N, n_parameters)`, parameters of the
+                data samples for which to compute log-probability.
+
+        Returns:
+            Array of `(N,)` log-likelihoods.
+        """
         x = tf.cast(x, self._dtype)
 
         conditional = tf.cast(conditional, self._dtype)
@@ -461,6 +646,17 @@ class ConditionalGaussianMixture(tfd.Distribution):
         return prob
 
     def prob(self, x, conditional):
+        """Probability of the likelihood for a set of samples.
+        
+        Args:
+            x (array): of shape `(N, n_data)`, data samples for which to
+                compute log-probability.
+            conditional (array): of shape `(N, n_parameters)`, parameters of the
+                data samples for which to compute log-probability.
+
+        Returns:
+            Array of `(N,)` likelihoods.
+        """
         x = tf.cast(x, self._dtype)
         conditional = tf.cast(conditional, self._dtype)
         # squeeze = True if tf.rank(x) == 1 else False
@@ -474,6 +670,15 @@ class ConditionalGaussianMixture(tfd.Distribution):
         return prob
 
     def sample(self, s, conditional):
+        """Sampling the likelihood.
+
+        Args:
+            s (int): number of samples.
+            conditional (array): parameters on which to condition the samples.
+
+        Returns:
+            Array of samples of shape `(N, n_data)`.
+        """
         conditional = tf.cast(conditional, self._dtype)
         squeeze = True if tf.rank(conditional) == 1 else False
         conditional = (
