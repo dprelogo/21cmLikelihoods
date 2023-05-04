@@ -1,0 +1,12 @@
+name: 21cmLikelihoods
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.8
+  - pip
+  - numpy
+  - corner
+  - tensorflow
+  - tensorflow-probability
+  - ultranest
