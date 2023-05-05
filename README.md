@@ -68,8 +68,6 @@ $$\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \mathcal{N}(\
 
 In code:
 ```python
-from py21cmlikelihoods import ConditionalGaussian
-
 NDE_diagonal = ConditionalGaussian(
     n_parameters = 2, 
     n_data = 5, 
