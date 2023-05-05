@@ -34,7 +34,8 @@ $\boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\the
 The possible Gaussian likelihoods are then:
 
 $$\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2(\boldsymbol{\theta}\_{\text{fid}})) , $$
-$$\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \Sigma(\boldsymbol{\theta}\_{\text{fid}})) .$$
+
+$$\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \Sigma(\boldsymbol{\theta}\_{\text{fid}})) . $$
 
 Here $\boldsymbol{\sigma}^2(\boldsymbol{\theta}\_{\text{fid}})$ and $\Sigma(\boldsymbol{\theta}\_{\text{fid}})$ represent the variance and covariance estimated at the fiducial parameter values.
 
@@ -86,7 +87,7 @@ The setup here is exactly the same as previous cases, with the difference that N
 a Gaussian mixture:
 $$\boldsymbol{\mu}\_{\text{NN}, 1}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, 1}(\boldsymbol{\theta}), \phi\_1(\boldsymbol{\theta}), \ldots, \boldsymbol{\mu}\_{\text{NN}, K}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, K}(\boldsymbol{\theta}), \phi\_K(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) ,$$
 where $\boldsymbol{\mu}\_{\text{NN}, i}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, i}(\boldsymbol{\theta})$ describe mean and covariance of the $i-\text{th}$ Gaussian and $\phi\_i(\boldsymbol{\theta})$ its relative (positive) weight, $\sum\_i \phi_i(\boldsymbol{\theta}) = 1$. Therefore, the full likelihood can be written as:
-$$\mathcal{L}\_{\text{NN}}(\boldsymbol{d}\_{PS} | \boldsymbol{\theta}) = \sum\_{i=1}^K \phi\_i(\boldsymbol{\theta}) \cdot \mathcal{N}(\boldsymbol{d}\_{PS}| \boldsymbol{\mu}\_{\text{NN}, i}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, i}(\boldsymbol{\theta})) .$$
+$$\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \sum\_{i=1}^K \phi\_i(\boldsymbol{\theta}) \cdot \mathcal{N}(\boldsymbol{d}\_{PS}| \boldsymbol{\mu}\_{\text{NN}, i}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, i}(\boldsymbol{\theta})) .$$
 
 In code:
 ```python
