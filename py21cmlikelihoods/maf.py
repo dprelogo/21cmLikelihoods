@@ -1,7 +1,10 @@
-import tensorflow as tf
-import tensorflow_probability as tfp
 import cloudpickle
 import pickle
+
+import tensorflow as tf
+import tensorflow_probability as tfp
+
+from .utils import check_callable
 
 tfd = tfp.distributions
 tfb = tfp.bijectors
@@ -91,10 +94,10 @@ class MaskedAutoregressiveFlow:
                     hidden_units=[self.hidden_units_dim] * self.n_dim,
                     activation=self.activation,
                     input_order=self.input_order,
-                    kernel_initializer=self.kernel_initializer,
-                    bias_initializer=self.bias_initializer if i < self.n_MADEs - 1 else self.last_bias_initializer,
-                    kernel_regularizer=self.kernel_regularizer,
-                    bias_regularizer=self.bias_regularizer,
+                    kernel_initializer=check_callable(self.kernel_initializer),
+                    bias_initializer=check_callable(self.bias_initializer) if i < self.n_MADEs - 1 else check_callable(self.last_bias_initializer),
+                    kernel_regularizer=check_callable(self.kernel_regularizer),
+                    bias_regularizer=check_callable(self.bias_regularizer),
                 ),
                 name=f"MADE_{i}",
             )
@@ -256,10 +259,10 @@ class ConditionalMaskedAutoregressiveFlow(MaskedAutoregressiveFlow):
                     * (self.n_dim + self.cond_n_dim),
                     activation=self.activation,
                     input_order=self.input_order,
-                    kernel_initializer=self.kernel_initializer,
-                    bias_initializer=self.bias_initializer if i < self.n_MADEs - 1 else self.last_bias_initializer,
-                    kernel_regularizer=self.kernel_regularizer,
-                    bias_regularizer=self.bias_regularizer,
+                    kernel_initializer=check_callable(self.kernel_initializer),
+                    bias_initializer=check_callable(self.bias_initializer) if i < self.n_MADEs - 1 else check_callable(self.last_bias_initializer),
+                    kernel_regularizer=check_callable(self.kernel_regularizer),
+                    bias_regularizer=check_callable(self.bias_regularizer),
                 ),
                 name=f"MADE_{i}",
             )

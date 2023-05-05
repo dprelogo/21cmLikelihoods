@@ -1,8 +1,12 @@
 from functools import partial
-import tensorflow as tf
-import tensorflow_probability as tfp
 import pickle
 import cloudpickle
+
+import tensorflow as tf
+import tensorflow_probability as tfp
+
+
+from .utils import check_callable
 
 tfd = tfp.distributions
 tfb = tfp.bijectors
@@ -36,10 +40,10 @@ class ConditionalGaussian(tfd.Distribution):
             It is used only if the `covariance` is not specified, i.e. it has to be fitted.
         n_hidden (list): specify the number of hidden layers and number of neurons
             in the fully-connected network going from parameter space to data space.
-        activation (tf.keras.activations, tf.keras.layers): `keras` activation function to use.
+        activation (tf.keras.activations.Activation, tf.keras.layers.Layer): `keras` activation function to use.
         optimizer (tf.optimizers.Optimizer): `keras` optimizer to use.
-        kernel_initializer (callable): function to initialize kernels.
-        final_bias_initializer (str): gives a fine control over what bias initializer
+        kernel_initializer (str, callable): function to initialize kernels.
+        final_bias_initializer (str, callable): gives a fine control over what bias initializer
             should be used in the final layer. Common choices are "zeros" or "ones".
         dtype: see `tfd.Distribution`.
         reparametrization_type: see `tfd.Distribution`.
@@ -235,7 +239,7 @@ class ConditionalGaussian(tfd.Distribution):
                     self.architecture[layer + 1],
                     input_shape=(size,),
                     activation=self.activation,
-                    kernel_initializer=kernel_initializer(),
+                    kernel_initializer=check_callable(kernel_initializer),
                 )
                 for layer, size in enumerate(self.architecture[:-1])
             ]
@@ -246,8 +250,8 @@ class ConditionalGaussian(tfd.Distribution):
                 model.add(
                     tf.keras.layers.Dense(
                         2 * self.n_data,
-                        kernel_initializer=kernel_initializer(),
-                        bias_initializer=final_bias_initializer,
+                        kernel_initializer=check_callable(kernel_initializer),
+                        bias_initializer=check_callable(final_bias_initializer),
                     )
                 )
                 model.add(
@@ -271,8 +275,8 @@ class ConditionalGaussian(tfd.Distribution):
                 model.add(
                     tf.keras.layers.Dense(
                         tfp.layers.MultivariateNormalTriL.params_size(self.n_data),
-                        kernel_initializer=kernel_initializer(),
-                        bias_initializer=final_bias_initializer,
+                        kernel_initializer=check_callable(kernel_initializer),
+                        bias_initializer=check_callable(final_bias_initializer),
                     )
                 )
                 model.add(
@@ -293,7 +297,7 @@ class ConditionalGaussian(tfd.Distribution):
             model.add(
                 tf.keras.layers.Dense(
                     self.n_data,
-                    kernel_initializer=kernel_initializer(),
+                    kernel_initializer=check_callable(kernel_initializer),
                 )
             )
             if self.last_transformation is not None:
@@ -431,8 +435,8 @@ class ConditionalGaussianMixture(tfd.Distribution):
             in the fully-connected network going from parameter space to data space.
         activation (tf.keras.activations.Activation, tf.keras.layers.Layer): `keras` activation function to use.
         optimizer (tf.optimizers.Optimizer): `keras` optimizer to use.
-        kernel_initializer (callable): function to initialize kernels.
-        final_bias_initializer (str): gives a fine control over what bias initializer
+        kernel_initializer (str, callable): function to initialize kernels.
+        final_bias_initializer (str, callable): gives a fine control over what bias initializer
             should be used in the final layer. Common choices are "zeros" or "ones".
         dtype: see `tfd.Distribution`.
         reparametrization_type: see `tfd.Distribution`.
@@ -581,7 +585,7 @@ class ConditionalGaussianMixture(tfd.Distribution):
                     self.architecture[layer + 1],
                     input_shape=(size,),
                     activation=self.activation,
-                    kernel_initializer=kernel_initializer(),
+                    kernel_initializer=check_callable(kernel_initializer),
                 )
                 for layer, size in enumerate(self.architecture[:-1])
             ]
@@ -597,8 +601,8 @@ class ConditionalGaussianMixture(tfd.Distribution):
         model.add(
             tf.keras.layers.Dense(
                 final_dense_size,
-                kernel_initializer=kernel_initializer(),
-                bias_initializer=final_bias_initializer,
+                kernel_initializer=check_callable(kernel_initializer),
+                bias_initializer=check_callable(final_bias_initializer),
             )
         )
 

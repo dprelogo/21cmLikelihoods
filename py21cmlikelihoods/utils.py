@@ -1,12 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-from . import (
-    ConditionalGaussian, 
-    ConditionalGaussianMixture, 
-    ConditionalMaskedAutoregressiveFlow,
-)
-
 def _prepare_dataset_Gauss(data_samples, param_samples, batch_size):
     N = len(data_samples)
     data_samples = tf.data.Dataset.from_tensor_slices(data_samples)
@@ -25,6 +19,12 @@ def _prepare_dataset_CMAF(data_samples, param_samples, batch_size):
     return tf.data.Dataset.zip((total, dummy_zeros)).shuffle(N).batch(batch_size)
 
 def prepare_dataset(NDE, data_samples, param_samples, batch_size):
+    from . import (
+        ConditionalGaussian, 
+        ConditionalGaussianMixture, 
+        ConditionalMaskedAutoregressiveFlow,
+    )
+    
     if isinstance(NDE, ConditionalMaskedAutoregressiveFlow):
         return _prepare_dataset_CMAF(data_samples, param_samples, batch_size)
     elif isinstance(NDE, (ConditionalGaussian, ConditionalGaussianMixture)):
