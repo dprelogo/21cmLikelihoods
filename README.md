@@ -34,7 +34,7 @@ $$\boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\the
 
 The possible Gaussian likelihoods are then:
 
-$$\mathcal{L}_{\text{NN}}(\boldsymbol{d}_{\text{PS}} | \boldsymbol{\theta})$$
+$$\mathcal{L}_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta})$$
 
 and
 
