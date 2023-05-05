@@ -58,11 +58,19 @@ NDE = ConditionalGaussian(
 where `fiducial_covariance` can be 1D or 2D, depending if full or diagonal covariance is needed.
 ## Covariance constraint
 Likewise, we can also estimate the (co)variance matrix with a NN. In this scenario, the network can output one of the following:
-$$\boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2\_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) , $$
-$$\boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \Sigma\_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) , $$
+$$
+\begin{aligned}
+\boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2\_{\text{NN}}(\boldsymbol{\theta}) &= \text{NN}(\boldsymbol{\theta}) , \\ 
+\boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \Sigma\_{\text{NN}}(\boldsymbol{\theta}) &= \text{NN}(\boldsymbol{\theta}) , 
+\begin{aligned}
+$$
 with their respective likelihoods:
-$$\mathcal{L}\_{\text{NN}}(\boldsymbol{d}\_{PS} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}\_{PS}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2\_{\text{NN}}(\boldsymbol{\theta})) ,$$
-$$\mathcal{L}\_{\text{NN}}(\boldsymbol{d}\_{PS} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}\_{PS}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \Sigma\_{\text{NN}}(\boldsymbol{\theta})) .$$
+$$
+\begin{aligned}
+\mathcal{L}\_{\text{NN}}(\boldsymbol{d}\_{PS} | \boldsymbol{\theta}) &= \mathcal{N}(\boldsymbol{d}\_{PS}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2\_{\text{NN}}(\boldsymbol{\theta})) , \\
+\mathcal{L}\_{\text{NN}}(\boldsymbol{d}\_{PS} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}\_{PS}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \Sigma\_{\text{NN}}(\boldsymbol{\theta})) .
+\end{aligned}
+$$
 
 In code:
 ```python
