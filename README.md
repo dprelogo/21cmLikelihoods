@@ -93,7 +93,7 @@ $$\boldsymbol{\mu}\_{\text{NN}, 1}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, 1}(
 
 where $\boldsymbol{\mu}\_{\text{NN}, i}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, i}(\boldsymbol{\theta})$ describe mean and covariance of the $i-\text{th}$ Gaussian and $\phi\_i(\boldsymbol{\theta})$ its relative (positive) weight, $\sum\_i \phi_i(\boldsymbol{\theta}) = 1$. Therefore, the full likelihood can be written as:
 
-$$\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \sum\_{i=1}^K \phi\_i(\boldsymbol{\theta}) \cdot \mathcal{N}(\boldsymbol{d}\_{PS}| \boldsymbol{\mu}\_{\text{NN}, i}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, i}(\boldsymbol{\theta})) .$$
+$$\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \sum\_{i=1}^K \phi\_i(\boldsymbol{\theta}) \cdot \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}\_{\text{NN}, i}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, i}(\boldsymbol{\theta})) .$$
 
 In code:
 ```python
