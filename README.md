@@ -121,6 +121,8 @@ NDE = ConditionalMaskedAutoregressiveFlow(
 # Training NDE likelihood
 To train NDE, simply format the training set and call the training function.
 ```python
+from py21cmlikelihoods.utils import prepare_dataset
+
 data_samples = np.load("data.npy")
 param_samples = np.load("params.npy")
 batch_size = 100
@@ -142,4 +144,5 @@ check the the conda `environment.yml` and install it as
 conda env create -f environment.yml
 ```
 
-# Citing
+# Acknowledging
+If you use the code in your research, please cite the original paper.
