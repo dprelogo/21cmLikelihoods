@@ -89,7 +89,37 @@ NDE_full = ConditionalGaussian(
 )
 ```
 ## Gaussian constraint
+Finally, we can relax the Gaussian constraint as well. This can be done in a parametric way
+by using Gaussian mixture networks, or non-parametric way with Conditional
+Masked Autoregressive Flows (CMAF).
 
+### Gaussian mixture network
+The setup here is exactly the same as previous cases, with the difference that NN outputs
+a Gaussian mixture:
+$$
+\bm{\mu}\_{\text{NN}, 1}(\bm{\theta}), \Sigma\_{\text{NN}, 1}(\bm{\theta}), \ldots, \bm{\mu}\_{\text{NN}, K}(\bm{\theta}), \Sigma\_{\text{NN}, K}(\bm{\theta}), \Phi(\bm{\theta}) = \text{NN}(\bm{\theta}) \, ,
+$$
+where $\bm{\mu}\_{\text{NN}, i}(\bm{\theta}), \Sigma\_{\text{NN}, i}(\bm{\theta})$ describe mean and covariance of the $i-\text{th}$ Gaussian and $\phi\_i(\bm{\theta}) \in {\Phi(\bm{\theta})}$ its relative weight, where $\Phi$ is the vector of relative weights. Therefore, the full likelihood can be written as:
+$$
+\mathcal{L}\_{\text{NN}}(\bm{d}\_{PS} | \bm{\theta}) = \sum\_{i=1}^K \phi\_i(\bm{\theta}) \cdot \mathcal{N}(\bm{d}\_{PS}| \bm{\mu}\_{\text{NN}, i}(\bm{\theta}), \Sigma\_{\text{NN}, i}(\bm{\theta})) \, ,
+$$
+where $\sum\_i \phi_i(\bm{\theta}) = 1$.
+
+In code:
+```python
+import numpy as np
+from py21cmlikelihoods import ConditionalGaussianMixture
+
+fiducial_covariance = np.load("cov.npy")
+
+NDE = ConditionalGaussianMixture(
+    n_parameters = 2, 
+    n_data = 5, 
+    n_components = 3,
+)
+```
+
+### Conditional Masked Autoregressive Flows
 
 # Installation
 To install and use the code, clone the repository and run
