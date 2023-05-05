@@ -59,10 +59,8 @@ where `fiducial_covariance` can be 1D or 2D, depending if full or diagonal covar
 ## Covariance constraint
 Likewise, we can also estimate the (co)variance matrix with a NN. In this scenario, the network can output one of the following:
 $$
-\begin{aligned}
-\boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2\_{\text{NN}}(\boldsymbol{\theta}) \&= \text{NN}(\boldsymbol{\theta}) , \\ 
-\boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \Sigma\_{\text{NN}}(\boldsymbol{\theta}) \&= \text{NN}(\boldsymbol{\theta}) , 
-\end{aligned}
+\boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2\_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) , \\ 
+\boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \Sigma\_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) , 
 $$
 with their respective likelihoods:
 $$
