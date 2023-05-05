@@ -34,3 +34,9 @@ def prepare_dataset(NDE, data_samples, param_samples, batch_size):
             "NDE should be `ConditionalGaussian`, `ConditionalGaussianMixture` "
             "or `ConditionalMaskedAutoregressiveFlow."
         )
+    
+def check_callable(f, *args, **kwargs):
+    if callable(f):
+        return f(*args, **kwargs)
+    else:
+        return f
