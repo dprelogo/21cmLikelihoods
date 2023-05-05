@@ -84,9 +84,7 @@ Masked Autoregressive Flows (CMAF).
 ### Gaussian mixture network
 The setup here is exactly the same as previous cases, with the difference that NN outputs
 a Gaussian mixture:
-$$
-\boldsymbol{\mu}\_{\text{NN}, 1}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, 1}(\boldsymbol{\theta}), \ldots, \boldsymbol{\mu}\_{\text{NN}, K}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, K}(\boldsymbol{\theta}), \Phi(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) ,
-$$
+$$\boldsymbol{\mu}\_{\text{NN}, 1}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, 1}(\boldsymbol{\theta}), \ldots, \boldsymbol{\mu}\_{\text{NN}, K}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, K}(\boldsymbol{\theta}), \Phi(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) ,$$
 where $\boldsymbol{\mu}\_{\text{NN}, i}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, i}(\boldsymbol{\theta})$ describe mean and covariance of the $i-\text{th}$ Gaussian and $\phi\_i(\boldsymbol{\theta}) \in {\Phi(\boldsymbol{\theta})}$ its relative weight, where $\Phi$ is the vector of relative weights. Therefore, the full likelihood can be written as:
 $$
 \mathcal{L}\_{\text{NN}}(\boldsymbol{d}\_{PS} | \boldsymbol{\theta}) = \sum\_{i=1}^K \phi\_i(\boldsymbol{\theta}) \cdot \mathcal{N}(\boldsymbol{d}\_{PS}| \boldsymbol{\mu}\_{\text{NN}, i}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, i}(\boldsymbol{\theta})) ,
