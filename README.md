@@ -31,9 +31,13 @@ We implement three main likelihood categories, by relaxing classical inference c
 In order to estimate the mean better, a feed-forward NN is used which takes parameters $\boldsymbol{\theta}$ and outputs the mean:
 
 $$\boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) \, . $$
+
 The possible Gaussian likelihoods are then:
+
 $$\mathcal{L}_{\text{NN}}(\boldsymbol{d}_{PS} | \boldsymbol{\theta}) &= \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2(\boldsymbol{\theta}_{\text{fid}})) \, ,$$
+
 $$\mathcal{L}_{\text{NN}}(\boldsymbol{d}_{PS} | \boldsymbol{\theta}) &= \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}), \Sigma(\boldsymbol{\theta}_{\text{fid}})) \, .$$
+
 Here $\boldsymbol{\sigma}^2(\boldsymbol{\theta}_{\text{fid}})$ and $\Sigma(\boldsymbol{\theta}_{\text{fid}})$ represent the variance and covariance estimated at the fiducial parameter values.
 
 In code, one can create such likelihoods as:
@@ -52,10 +56,15 @@ NDE = ConditionalGaussian(
 where `fiducial_covariance` can be 1D or 2D, depending if full or diagonal covariance is needed.
 ### Covariance constraint
 Likewise, we can also estimate the (co)variance matrix with a NN. In this scenario, the network can output one of the following:
+
 $$\boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) \, , $$
+
 $$\boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}), \Sigma_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) \, , $$
+
 with their respective likelihoods:
+
 $$\mathcal{L}_{\text{NN}}(\boldsymbol{d}_{PS} | \boldsymbol{\theta}) &= \mathcal{N}(\boldsymbol{d}_{PS}| \boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2_{\text{NN}}(\boldsymbol{\theta})) \, ,$$
+
 $$\mathcal{L}_{\text{NN}}(\boldsymbol{d}_{PS} | \boldsymbol{\theta}) &= \mathcal{N}(\boldsymbol{d}_{PS}| \boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}), \Sigma_{\text{NN}}(\boldsymbol{\theta})) \, .$$
 
 In code:
