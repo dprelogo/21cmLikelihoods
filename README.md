@@ -55,10 +55,15 @@ NDE = ConditionalGaussian(
 where `fiducial_covariance` can be 1D or 2D, depending if full or diagonal covariance is needed.
 ## Covariance constraint
 Likewise, we can also estimate the (co)variance matrix with a NN. In this scenario, the network can output one of the following:
+
 $$\boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2\_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) ,$$
+
 $$\boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \Sigma\_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) , $$
+
 with their respective likelihoods:
+
 $$\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2\_{\text{NN}}(\boldsymbol{\theta})) ,$$
+
 $$\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \Sigma\_{\text{NN}}(\boldsymbol{\theta})) .$$
 
 In code:
@@ -85,8 +90,11 @@ Masked Autoregressive Flows (CMAF).
 ### Gaussian mixture network
 The setup here is exactly the same as previous cases, with the difference that NN outputs
 a Gaussian mixture:
+
 $$\boldsymbol{\mu}\_{\text{NN}, 1}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, 1}(\boldsymbol{\theta}), \phi\_1(\boldsymbol{\theta}), \ldots, \boldsymbol{\mu}\_{\text{NN}, K}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, K}(\boldsymbol{\theta}), \phi\_K(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) ,$$
+
 where $\boldsymbol{\mu}\_{\text{NN}, i}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, i}(\boldsymbol{\theta})$ describe mean and covariance of the $i-\text{th}$ Gaussian and $\phi\_i(\boldsymbol{\theta})$ its relative (positive) weight, $\sum\_i \phi_i(\boldsymbol{\theta}) = 1$. Therefore, the full likelihood can be written as:
+
 $$\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \sum\_{i=1}^K \phi\_i(\boldsymbol{\theta}) \cdot \mathcal{N}(\boldsymbol{d}\_{PS}| \boldsymbol{\mu}\_{\text{NN}, i}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, i}(\boldsymbol{\theta})) .$$
 
 In code:
