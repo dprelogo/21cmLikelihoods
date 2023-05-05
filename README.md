@@ -97,13 +97,13 @@ Masked Autoregressive Flows (CMAF).
 The setup here is exactly the same as previous cases, with the difference that NN outputs
 a Gaussian mixture:
 $$
-\bm{\mu}\_{\text{NN}, 1}(\bm{\theta}), \Sigma\_{\text{NN}, 1}(\bm{\theta}), \ldots, \bm{\mu}\_{\text{NN}, K}(\bm{\theta}), \Sigma\_{\text{NN}, K}(\bm{\theta}), \Phi(\bm{\theta}) = \text{NN}(\bm{\theta}) \, ,
+\boldsymbol{\mu}\_{\text{NN}, 1}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, 1}(\boldsymbol{\theta}), \ldots, \boldsymbol{\mu}\_{\text{NN}, K}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, K}(\boldsymbol{\theta}), \Phi(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) \, ,
 $$
-where $\bm{\mu}\_{\text{NN}, i}(\bm{\theta}), \Sigma\_{\text{NN}, i}(\bm{\theta})$ describe mean and covariance of the $i-\text{th}$ Gaussian and $\phi\_i(\bm{\theta}) \in {\Phi(\bm{\theta})}$ its relative weight, where $\Phi$ is the vector of relative weights. Therefore, the full likelihood can be written as:
+where $\boldsymbol{\mu}\_{\text{NN}, i}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, i}(\boldsymbol{\theta})$ describe mean and covariance of the $i-\text{th}$ Gaussian and $\phi\_i(\boldsymbol{\theta}) \in {\Phi(\boldsymbol{\theta})}$ its relative weight, where $\Phi$ is the vector of relative weights. Therefore, the full likelihood can be written as:
 $$
-\mathcal{L}\_{\text{NN}}(\bm{d}\_{PS} | \bm{\theta}) = \sum\_{i=1}^K \phi\_i(\bm{\theta}) \cdot \mathcal{N}(\bm{d}\_{PS}| \bm{\mu}\_{\text{NN}, i}(\bm{\theta}), \Sigma\_{\text{NN}, i}(\bm{\theta})) \, ,
+\mathcal{L}\_{\text{NN}}(\boldsymbol{d}\_{PS} | \boldsymbol{\theta}) = \sum\_{i=1}^K \phi\_i(\boldsymbol{\theta}) \cdot \mathcal{N}(\boldsymbol{d}\_{PS}| \boldsymbol{\mu}\_{\text{NN}, i}(\boldsymbol{\theta}), \Sigma\_{\text{NN}, i}(\boldsymbol{\theta})) \, ,
 $$
-where $\sum\_i \phi_i(\bm{\theta}) = 1$.
+where $\sum\_i \phi_i(\boldsymbol{\theta}) = 1$.
 
 In code:
 ```python
