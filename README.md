@@ -29,7 +29,7 @@ We implement three main likelihood categories, by relaxing classical inference c
 
 ## Mean constraint
 In order to estimate the mean better, a feed-forward NN is used which takes parameters $\boldsymbol{\theta}$ and outputs the mean:
-$$\boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) .$$
+$\boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) .$
 The possible Gaussian likelihoods are then:
 $$
 \begin{aligned}
