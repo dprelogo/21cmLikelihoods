@@ -36,7 +36,10 @@ The possible Gaussian likelihoods are then:
 
 $$ \mathcal{L}_{\text{NN}}(\boldsymbol{d}_{PS} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}_{\text{NN}} $$
 
+and
+
 $$\mathcal{L}_{\text{NN}}(\boldsymbol{d}_{PS} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2(\boldsymbol{\theta}_{\text{fid}})) ,$$
+and
 
 $$\mathcal{L}_{\text{NN}}(\boldsymbol{d}_{PS} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}), \Sigma(\boldsymbol{\theta}_{\text{fid}})) .$$
 
