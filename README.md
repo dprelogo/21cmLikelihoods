@@ -33,12 +33,8 @@ $\boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\the
 
 The possible Gaussian likelihoods are then:
 
-$$
-\begin{aligned}
-\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) &= \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2(\boldsymbol{\theta}\_{\text{fid}})) , \\
-\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) &= \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \Sigma(\boldsymbol{\theta}\_{\text{fid}})) .
-\end{aligned}
-$$
+$$\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2(\boldsymbol{\theta}\_{\text{fid}})) , $$
+$$\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \Sigma(\boldsymbol{\theta}\_{\text{fid}})) .$$
 
 Here $\boldsymbol{\sigma}^2(\boldsymbol{\theta}\_{\text{fid}})$ and $\Sigma(\boldsymbol{\theta}\_{\text{fid}})$ represent the variance and covariance estimated at the fiducial parameter values.
 
@@ -61,12 +57,8 @@ Likewise, we can also estimate the (co)variance matrix with a NN. In this scenar
 $$\boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2\_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) ,$$
 $$\boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \Sigma\_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\theta}) , $$
 with their respective likelihoods:
-$$
-\begin{aligned}
-\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) &= \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2\_{\text{NN}}(\boldsymbol{\theta})) , \\
-\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) &= \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \Sigma\_{\text{NN}}(\boldsymbol{\theta})) .
-\end{aligned}
-$$
+$$\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2\_{\text{NN}}(\boldsymbol{\theta})) ,$$
+$$\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}\_{\text{NN}}(\boldsymbol{\theta}), \Sigma\_{\text{NN}}(\boldsymbol{\theta})) .$$
 
 In code:
 ```python
