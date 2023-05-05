@@ -20,7 +20,7 @@ A database of (parameter, data sample) pairs follow full distribution
 $P(\boldsymbol{d}, \boldsymbol{\theta}) = \mathcal{L}(\boldsymbol{d} | \boldsymbol{\theta}) \cdot \pi(\boldsymbol{\theta})$.
 Using a NN-parameterized likelihood NDE $\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta})$ and training it to
 minimize KL divergence, we recover a data-driven likelihood estimator.
-With that in hand, one can use standard MCMC (or nested sampling) to recover posterior.
+Once trained, one can use standard MCMC (or nested sampling) to recover posterior for a particular observed data $\boldsymbol{d}_{\text{obs}}$.
 
 See [examples](https://github.com/dprelogo/21cmLikelihoods/tree/main/examples) and [article](https://arxiv.org/) for more details.
 
@@ -99,10 +99,7 @@ $$\mathcal{L}\_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \sum\_{i=1}^K
 
 In code:
 ```python
-import numpy as np
 from py21cmlikelihoods import ConditionalGaussianMixture
-
-fiducial_covariance = np.load("cov.npy")
 
 NDE = ConditionalGaussianMixture(
     n_parameters = 2, 
@@ -112,14 +109,37 @@ NDE = ConditionalGaussianMixture(
 ```
 
 ### Conditional Masked Autoregressive Flows
+CMAF represents non-parametric density estimator, with large expressivity in the 
+shape of the final distribution. Minimal example is the following:
+```python
+from py21cmlikelihoods import ConditionalMaskedAutoregressiveFlow
 
+NDE = ConditionalMaskedAutoregressiveFlow(
+    n_dim = 5,
+    cond_n_dim = 2,
+)
+```
+
+# Training NDE likelihood
+To train NDE, simply format the training set and call the training function.
+```python
+data_samples = np.load("data.npy")
+param_samples = np.load("params.npy")
+batch_size = 100
+training_set = prepare_dataset(NDE, data_samples, param_samples, batch_size)
+
+NDE.train(
+    epochs = 100,
+    dataset = training_set,
+)
+```
 # Installation
 To install and use the code, clone the repository and run
 ```bash
 pip install -e .
 ```
 For a full setup needed to run [examples](https://github.com/dprelogo/21cmLikelihoods/tree/main/examples),
-check the `environment.yml` which one can install as
+check the the conda `environment.yml` and install it as
 ```bash
 conda env create -f environment.yml
 ```
