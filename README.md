@@ -34,13 +34,10 @@ $$\boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}) = \text{NN}(\boldsymbol{\the
 
 The possible Gaussian likelihoods are then:
 
-$$\mathcal{L}_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta})$$
+$$\mathcal{L}_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2(\boldsymbol{\theta}_{\text{fid}})) ,$$
 
-and
 
-$\mathcal{L}_{\text{NN}}(\boldsymbol{d}_{PS} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}), \boldsymbol{\sigma}^2(\boldsymbol{\theta}_{\text{fid}})) ,$
-and
-$\mathcal{L}_{\text{NN}}(\boldsymbol{d}_{PS} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}), \Sigma(\boldsymbol{\theta}_{\text{fid}})) .$
+$$\mathcal{L}_{\text{NN}}(\boldsymbol{d} | \boldsymbol{\theta}) = \mathcal{N}(\boldsymbol{d}| \boldsymbol{\mu}_{\text{NN}}(\boldsymbol{\theta}), \Sigma(\boldsymbol{\theta}_{\text{fid}})) .$$
 
 Here $\boldsymbol{\sigma}^2(\boldsymbol{\theta}_{\text{fid}})$ and $\Sigma(\boldsymbol{\theta}_{\text{fid}})$ represent the variance and covariance estimated at the fiducial parameter values.
 
