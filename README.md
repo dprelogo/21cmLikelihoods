@@ -142,6 +142,8 @@ For a full setup needed to run [examples](https://github.com/dprelogo/21cmLikeli
 check the the conda `environment.yml` and install it as
 ```bash
 conda env create -f environment.yml
+conda activate 21cmLikelihoods
+pip install -e .
 ```
 
 # Acknowledging
