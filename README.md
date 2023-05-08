@@ -22,7 +22,7 @@ Using a NN-parameterized likelihood NDE $\mathcal{L}\_{\text{NN}}(\boldsymbol{d}
 minimize KL divergence, we recover a data-driven likelihood estimator.
 Once trained, one can use standard MCMC (or nested sampling) to recover posterior for a particular observed data $\boldsymbol{d}_{\text{obs}}$.
 
-See [examples](https://github.com/dprelogo/21cmLikelihoods/tree/main/examples) and [article](https://arxiv.org/) for more details.
+See [examples](https://github.com/dprelogo/21cmLikelihoods/tree/main/examples) and [article](https://arxiv.org/abs/2305.03074) for more details.
 
 # Implemented likelihoods
 We implement three main likelihood categories, by relaxing classical inference constraints.
