@@ -7,6 +7,7 @@ Common assumptions of the classical Bayesian inferences with the 21-cm PS are:
 - the covariance matrix is usually fixed and pre-calculated at some fiducial parameter values,
 - often only diagonal covariance is used, ignoring other correlations,
 - the Gaussian mean at each point in parameter space is estimated from only one realization.
+
 All of these assumptions mostly come in order to reduce computational costs,
 and have a potentially significant impact on the final posterior.
 
