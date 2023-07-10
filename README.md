@@ -152,17 +152,16 @@ If you use the code in your research, please cite the original paper:
 ```
 @ARTICLE{Prelogovic2023,
        author = {{Prelogovi{\'c}}, David and {Mesinger}, Andrei},
-        title = "{The likelihood of the 21-cm power spectrum}",
-      journal = {arXiv e-prints},
-     keywords = {Astrophysics - Cosmology and Nongalactic Astrophysics, Astrophysics - Astrophysics of Galaxies},
+        title = "{Exploring the likelihood of the 21-cm power spectrum with simulation-based inference}",
+      journal = {\mnras},
+     keywords = {cosmology: theory, dark ages, reionization, first stars, methods: data analysis, methods: statistical, Astrophysics - Cosmology and Nongalactic Astrophysics, Astrophysics - Astrophysics of Galaxies},
          year = 2023,
-        month = may,
-          eid = {arXiv:2305.03074},
-        pages = {arXiv:2305.03074},
+        month = jul,
+          doi = {10.1093/mnras/stad2027},
 archivePrefix = {arXiv},
        eprint = {2305.03074},
  primaryClass = {astro-ph.CO},
-       adsurl = {https://ui.adsabs.harvard.edu/abs/2023arXiv230503074P},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2023MNRAS.tmp.1955P},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 ```
