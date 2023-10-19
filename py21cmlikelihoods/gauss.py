@@ -11,6 +11,7 @@ from .utils import check_callable
 tfd = tfp.distributions
 tfb = tfp.bijectors
 
+
 # TODO: make bias initializer option
 class ConditionalGaussian(tfd.Distribution):
     """Conditional Gaussian NDE distribution.
@@ -42,9 +43,15 @@ class ConditionalGaussian(tfd.Distribution):
             in the fully-connected network going from parameter space to data space.
         activation (tf.keras.activations.Activation, tf.keras.layers.Layer): `keras` activation function to use.
         optimizer (tf.optimizers.Optimizer): `keras` optimizer to use.
-        kernel_initializer (str, callable): function to initialize kernels.
+        kernel_initializer (tf.keras.Initiaizer): `keras` initializer to use.
+        kernel_initializer_kwargs (dict): dictionary of flags for the initializer.
+        bias_initializer: initializer for biases.
+        bias_initializer_kwargs (dict): kwargs for bias initializer.
         final_bias_initializer (str, callable): gives a fine control over what bias initializer
             should be used in the final layer. Common choices are "zeros" or "ones".
+        kernel_regularizer (tf.keras.regularizers.Regularizer): kernel regularizer.
+        bias_regularizer (tf.keras.regularizers.Regularizer): bias regularizer.
+        regularize_last_layer (bool): either to put a regularizer to the output layer or not.
         dtype: see `tfd.Distribution`.
         reparametrization_type: see `tfd.Distribution`.
         validate_args: see `tfd.Disitrbution`.
@@ -59,6 +66,7 @@ class ConditionalGaussian(tfd.Distribution):
         prob: probability of the likelihood for samples
         sample: sampling the likelihood for the fixed conditional
     """
+
     def __init__(
         self,
         n_parameters,
@@ -71,15 +79,18 @@ class ConditionalGaussian(tfd.Distribution):
         n_hidden=[50, 50],
         activation=tf.keras.layers.LeakyReLU(0.01),
         optimizer=tf.optimizers.Adam(1e-3),
-        kernel_initializer=partial(
-            tf.keras.initializers.RandomNormal, mean=0.0, stddev=1e-5, seed=None
-        ),
-        final_bias_initializer="zeros",
+        kernel_initializer=tf.keras.initializers.RandomNormal,
+        kernel_initializer_kwargs={"mean": 0.0, "stdev": 1e-5, "seed": None},
+        bias_initializer="zeros",
+        bias_initializer_kwargs={},
+        last_layer_bias_initializer=None,
+        kernel_regularizer=tf.keras.regularizers.L1L2(l1=1e-2, l2=1e-2),
+        bias_regularizer=tf.keras.regularizers.L1L2(l1=1e-5, l2=1e-5),
+        regularize_last_layer=False,
         dtype=tf.float32,
         reparameterization_type=None,
         validate_args=False,
         allow_nan_stats=True,
-
     ):
         super().__init__(
             dtype=dtype,
@@ -116,7 +127,19 @@ class ConditionalGaussian(tfd.Distribution):
         self.optimizer = optimizer
         self.architecture = [self.n_parameters] + self.n_hidden
 
-        self.model = self._build_network(kernel_initializer, final_bias_initializer)
+        if last_layer_bias_initializer is None:
+            last_layer_bias_initializer = bias_initializer
+
+        self.model = self._build_network(
+            kernel_initializer,
+            kernel_initializer_kwargs,
+            bias_initializer,
+            bias_initializer_kwargs,
+            last_layer_bias_initializer,
+            kernel_regularizer,
+            bias_regularizer,
+            regularize_last_layer,
+        )
         # self.compile()
         self.conditional_log_prob = self.log_prob
         self.conditional_prob = self.prob
@@ -145,7 +168,7 @@ class ConditionalGaussian(tfd.Distribution):
 
         Args:
             epochs (int): number of epochs to train.
-            dataset (tf.dataset.Dataset): batched training dataset of 
+            dataset (tf.dataset.Dataset): batched training dataset of
                 `(parameters, data)` pairs.
             dataset_val (tf.dataset.Dataset): batched validation dataset of
                 `(parameters, data)` pairs.
@@ -159,7 +182,7 @@ class ConditionalGaussian(tfd.Distribution):
             filename (str): base filename.
             callbacks (list): list of keras callbacks called during training
             pretrain_callbacks (list): list of keras callbacks called during pre-training.
-        
+
         """
         if pretrain:
             self.compile(new_optimizer=pretrain_optimizer, pretrain_phase=True)
@@ -195,12 +218,16 @@ class ConditionalGaussian(tfd.Distribution):
 
     def _loss_pretrain(self, x, distribution):
         mean = distribution.mean()
+        stddev = distribution.stddev()
         if self.last_inverse_activation is not None:
             mean = self.last_inverse_activation(mean)
         if self.last_inverse_transformation is not None:
             mean = self.last_inverse_transformation(mean)
         squared_difference = 0.5 * tf.square(x - mean)
-        return tf.reduce_sum(squared_difference, axis=-1)
+        stddev_difference = 0.5 * tf.square(1.0 - stddev)
+        return tf.reduce_sum(squared_difference, axis=-1) + tf.reduce_sum(
+            stddev_difference, axis=-1
+        )
 
     def compile(self, new_optimizer=None, pretrain_phase=True):
         """Compiling the model.
@@ -217,7 +244,17 @@ class ConditionalGaussian(tfd.Distribution):
         optimizer = self.optimizer if new_optimizer is None else new_optimizer
         self.model.compile(optimizer=optimizer, loss=loss)
 
-    def _build_network(self, kernel_initializer, final_bias_initializer):
+    def _build_network(
+        self,
+        kernel_initializer,
+        kernel_initializer_kwargs,
+        bias_initializer,
+        bias_initializer_kwargs,
+        last_layer_bias_initializer,
+        kernel_regularizer,
+        bias_regularizer,
+        regularize_last_layer,
+    ):
         if self.exponentiate:
             self.last_activation = tf.math.exp
             self.last_inverse_activation = tf.math.log
@@ -239,34 +276,51 @@ class ConditionalGaussian(tfd.Distribution):
                     self.architecture[layer + 1],
                     input_shape=(size,),
                     activation=self.activation,
-                    kernel_initializer=check_callable(kernel_initializer),
+                    kernel_initializer=check_callable(
+                        kernel_initializer, **kernel_initializer_kwargs
+                    ),
+                    bias_initializer=check_callable(
+                        bias_initializer, **bias_initializer_kwargs
+                    ),
+                    kernel_regularizer=kernel_regularizer,
+                    bias_regularizer=bias_regularizer,
                 )
                 for layer, size in enumerate(self.architecture[:-1])
             ]
         )
+
+        if not regularize_last_layer:
+            kernel_regularizer = None
+            bias_regularizer = None
 
         if self.covariance is None:
             if self.diagonal_covariance:
                 model.add(
                     tf.keras.layers.Dense(
                         2 * self.n_data,
-                        kernel_initializer=check_callable(kernel_initializer),
-                        bias_initializer=check_callable(final_bias_initializer),
+                        kernel_initializer=check_callable(
+                            kernel_initializer, **kernel_initializer_kwargs
+                        ),
+                        bias_initializer=check_callable(
+                            last_layer_bias_initializer, **bias_initializer_kwargs
+                        ),
+                        kernel_regularizer=kernel_regularizer,
+                        bias_regularizer=bias_regularizer,
                     )
                 )
-                model.add(
-                    tf.keras.layers.Lambda(
-                        lambda x: tf.concat(
-                            [x[..., : self.n_data], x[..., self.n_data :] ** 2],
-                            -1,
-                        )
-                    )
-                )
+                # model.add(
+                #     tf.keras.layers.Lambda(
+                #         lambda x: tf.concat(
+                #             [x[..., : self.n_data], x[..., self.n_data :] ** 2],
+                #             -1,
+                #         )
+                #     )
+                # )
                 model.add(
                     tfp.layers.DistributionLambda(
                         lambda x: tfd.MultivariateNormalDiag(
                             loc=x[..., : self.n_data],
-                            scale_diag=x[..., self.n_data :],
+                            scale_diag=tf.math.exp(x[..., self.n_data :]),
                             validate_args=self._validate_args,
                         )
                     )
@@ -275,8 +329,14 @@ class ConditionalGaussian(tfd.Distribution):
                 model.add(
                     tf.keras.layers.Dense(
                         tfp.layers.MultivariateNormalTriL.params_size(self.n_data),
-                        kernel_initializer=check_callable(kernel_initializer),
-                        bias_initializer=check_callable(final_bias_initializer),
+                        kernel_initializer=check_callable(
+                            kernel_initializer, **kernel_initializer_kwargs
+                        ),
+                        bias_initializer=check_callable(
+                            last_layer_bias_initializer, **bias_initializer_kwargs
+                        ),
+                        kernel_regularizer=kernel_regularizer,
+                        bias_regularizer=bias_regularizer,
                     )
                 )
                 model.add(
@@ -297,7 +357,11 @@ class ConditionalGaussian(tfd.Distribution):
             model.add(
                 tf.keras.layers.Dense(
                     self.n_data,
-                    kernel_initializer=check_callable(kernel_initializer),
+                    kernel_initializer=check_callable(
+                        kernel_initializer, **kernel_initializer_kwargs
+                    ),
+                    kernel_regularizer=kernel_regularizer,
+                    bias_regularizer=bias_regularizer,
                 )
             )
             if self.last_transformation is not None:
@@ -327,7 +391,7 @@ class ConditionalGaussian(tfd.Distribution):
 
     def log_prob(self, x, conditional, x_in_final_space=False):
         """Log-probability of the likelihood for a set of samples.
-        
+
         Args:
             x (array): of shape `(N, n_data)`, data samples for which to
                 compute log-probability.
@@ -362,7 +426,7 @@ class ConditionalGaussian(tfd.Distribution):
 
     def prob(self, x, conditional, x_in_final_space=False):
         """Probability of the likelihood for a set of samples.
-        
+
         Args:
             x (array): of shape `(N, n_data)`, data samples for which to
                 compute log-probability.
@@ -435,9 +499,15 @@ class ConditionalGaussianMixture(tfd.Distribution):
             in the fully-connected network going from parameter space to data space.
         activation (tf.keras.activations.Activation, tf.keras.layers.Layer): `keras` activation function to use.
         optimizer (tf.optimizers.Optimizer): `keras` optimizer to use.
-        kernel_initializer (str, callable): function to initialize kernels.
-        final_bias_initializer (str, callable): gives a fine control over what bias initializer
-            should be used in the final layer. Common choices are "zeros" or "ones".
+        kernel_initializer (tf.keras.Initiaizer): `keras` initializer to use.
+        kernel_initializer_kwargs (dict): dictionary of flags for the initializer.
+        bias_initializer: initializer for biases.
+        bias_initializer_kwargs (dict): kwargs for bias initializer.
+        last_layer_bias_initializer (str, callable): gives a fine control over what bias initializer
+            should be used in the last layer. Common choices are "zeros" or "ones".
+        kernel_regularizer (tf.keras.regularizers.Regularizer): kernel regularizer.
+        bias_regularizer (tf.keras.regularizers.Regularizer): bias regularizer.
+        regularize_last_layer (bool): either to put a regularizer to the output layer or not.
         dtype: see `tfd.Distribution`.
         reparametrization_type: see `tfd.Distribution`.
         validate_args: see `tfd.Disitrbution`.
@@ -452,6 +522,7 @@ class ConditionalGaussianMixture(tfd.Distribution):
         prob: probability of the likelihood for samples
         sample: sampling the likelihood for the fixed conditional
     """
+
     def __init__(
         self,
         n_parameters,
@@ -460,10 +531,14 @@ class ConditionalGaussianMixture(tfd.Distribution):
         n_hidden=[50, 50],
         activation=tf.keras.layers.LeakyReLU(0.01),
         optimizer=tf.optimizers.Adam(1e-3),
-        kernel_initializer=partial(
-            tf.keras.initializers.RandomNormal, mean=0.0, stddev=1e-5, seed=None
-        ),
-        final_bias_initializer="zeros",
+        kernel_initializer=tf.keras.initializers.RandomNormal,
+        kernel_initializer_kwargs={"mean": 0.0, "stdev": 1e-5, "seed": None},
+        bias_initializer="zeros",
+        bias_initializer_kwargs={},
+        last_layer_bias_initializer=None,
+        kernel_regularizer=tf.keras.regularizers.L1L2(l1=1e-2, l2=1e-2),
+        bias_regularizer=tf.keras.regularizers.L1L2(l1=1e-5, l2=1e-5),
+        regularize_last_layer=False,
         dtype=tf.float32,
         reparameterization_type=None,
         validate_args=False,
@@ -486,7 +561,19 @@ class ConditionalGaussianMixture(tfd.Distribution):
         self.optimizer = optimizer
         self.architecture = [self.n_parameters] + self.n_hidden
 
-        self.model = self._build_network(kernel_initializer, final_bias_initializer)
+        if last_layer_bias_initializer is None:
+            last_layer_bias_initializer = bias_initializer
+
+        self.model = self._build_network(
+            kernel_initializer,
+            kernel_initializer_kwargs,
+            bias_initializer,
+            bias_initializer_kwargs,
+            last_layer_bias_initializer,
+            kernel_regularizer,
+            bias_regularizer,
+            regularize_last_layer,
+        )
         # self.compile()
         self.conditional_log_prob = self.log_prob
         self.conditional_prob = self.prob
@@ -515,7 +602,7 @@ class ConditionalGaussianMixture(tfd.Distribution):
 
         Args:
             epochs (int): number of epochs to train.
-            dataset (tf.dataset.Dataset): batched training dataset of 
+            dataset (tf.dataset.Dataset): batched training dataset of
                 `(parameters, data)` pairs.
             dataset_val (tf.dataset.Dataset): batched validation dataset of
                 `(parameters, data)` pairs.
@@ -560,8 +647,12 @@ class ConditionalGaussianMixture(tfd.Distribution):
 
     def _loss_pretrain(self, x, distribution):
         mean = distribution.mean()
+        stddev = distribution.stddev()
         squared_difference = 0.5 * tf.square(x - mean)
-        return tf.reduce_sum(squared_difference, axis=-1)
+        stddev_difference = 0.5 * tf.square(1.0 - stddev)
+        return tf.reduce_sum(squared_difference, axis=-1) + tf.reduce_sum(
+            stddev_difference, axis=-1
+        )
 
     def compile(self, new_optimizer=None, pretrain_phase=True):
         """Compiling the model.
@@ -578,14 +669,31 @@ class ConditionalGaussianMixture(tfd.Distribution):
         optimizer = self.optimizer if new_optimizer is None else new_optimizer
         self.model.compile(optimizer=optimizer, loss=loss)
 
-    def _build_network(self, kernel_initializer, final_bias_initializer):
+    def _build_network(
+        self,
+        kernel_initializer,
+        kernel_initializer_kwargs,
+        bias_initializer,
+        bias_initializer_kwargs,
+        last_layer_bias_initializer,
+        kernel_regularizer,
+        bias_regularizer,
+        regularize_last_layer,
+    ):
         model = tf.keras.models.Sequential(
             [
                 tf.keras.layers.Dense(
                     self.architecture[layer + 1],
                     input_shape=(size,),
                     activation=self.activation,
-                    kernel_initializer=check_callable(kernel_initializer),
+                    kernel_initializer=check_callable(
+                        kernel_initializer, **kernel_initializer_kwargs
+                    ),
+                    bias_initializer=check_callable(
+                        bias_initializer, **bias_initializer_kwargs
+                    ),
+                    kernel_regularizer=kernel_regularizer,
+                    bias_regularizer=bias_regularizer,
                 )
                 for layer, size in enumerate(self.architecture[:-1])
             ]
@@ -598,11 +706,21 @@ class ConditionalGaussianMixture(tfd.Distribution):
             ),
         )
 
+        if not regularize_last_layer:
+            kernel_regularizer = None
+            bias_regularizer = None
+
         model.add(
             tf.keras.layers.Dense(
                 final_dense_size,
-                kernel_initializer=check_callable(kernel_initializer),
-                bias_initializer=check_callable(final_bias_initializer),
+                kernel_initializer=check_callable(
+                    kernel_initializer, **kernel_initializer_kwargs
+                ),
+                bias_initializer=check_callable(
+                    last_layer_bias_initializer, **bias_initializer_kwargs
+                ),
+                kernel_regularizer=kernel_regularizer,
+                bias_regularizer=bias_regularizer,
             )
         )
 
@@ -626,7 +744,7 @@ class ConditionalGaussianMixture(tfd.Distribution):
 
     def log_prob(self, x, conditional):
         """Log-probability of the likelihood for a set of samples.
-        
+
         Args:
             x (array): of shape `(N, n_data)`, data samples for which to
                 compute log-probability.
@@ -651,7 +769,7 @@ class ConditionalGaussianMixture(tfd.Distribution):
 
     def prob(self, x, conditional):
         """Probability of the likelihood for a set of samples.
-        
+
         Args:
             x (array): of shape `(N, n_data)`, data samples for which to
                 compute log-probability.

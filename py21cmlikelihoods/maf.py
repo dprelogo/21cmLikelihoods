@@ -9,6 +9,7 @@ from .utils import check_callable
 tfd = tfp.distributions
 tfb = tfp.bijectors
 
+
 class MaskedAutoregressiveFlow:
     """Masked Autoregressive Flow, series of MADE bijectors.
 
@@ -21,7 +22,10 @@ class MaskedAutoregressiveFlow:
             `["random", "left-to-right", "right-to-left"]`, applied to every MADE.
         n_MADEs (int): number of MADE transformations.
         kernel_initializer: initializer for weights, see `tfb.AutoregressiveNetwork`.
+        kernel_initiaizer_kwargs (dict): kwargs for kernel initializer.
         bias_initializer: initializer for biases, see `tfb.AutoregressiveNetwork`.
+        bias_initializer_kwargs (dict): kwargs for bias initializer.
+        last_layer_bias_initializer: initializer for last layer's biases.
         kernel_regularizer: weights' regularizer, see `tfb.AutoregressiveNetwork`.
         bias_regularizer: biases' regularizer, see `tfb.AutoregressiveNetwork`.
 
@@ -44,8 +48,10 @@ class MaskedAutoregressiveFlow:
         input_order="random",
         n_MADEs=10,
         kernel_initializer="glorot_uniform",
+        kernel_initializer_kwargs={},
         bias_initializer="zeros",
-        last_bias_initializer=None,
+        bias_initializer_kwargs={},
+        last_layer_bias_initializer=None,
         kernel_regularizer=None,
         bias_regularizer=None,
     ):
@@ -57,13 +63,15 @@ class MaskedAutoregressiveFlow:
         self.n_MADEs = n_MADEs
 
         self.kernel_initializer = kernel_initializer
+        self.kernel_initializer_kwargs = kernel_initializer_kwargs
         self.bias_initializer = bias_initializer
+        self.bias_initializer_kwargs = bias_initializer_kwargs
         self.kernel_regularizer = kernel_regularizer
         self.bias_regularizer = bias_regularizer
-        if last_bias_initializer is None:
-            self.last_bias_initializer = bias_initializer
+        if last_layer_bias_initializer is None:
+            self.last_layer_bias_initializer = bias_initializer
         else:
-            self.last_bias_initializer = last_bias_initializer
+            self.last_layer_bias_initializer = last_layer_bias_initializer
 
         self._configure()
 
@@ -94,10 +102,16 @@ class MaskedAutoregressiveFlow:
                     hidden_units=[self.hidden_units_dim] * self.n_dim,
                     activation=self.activation,
                     input_order=self.input_order,
-                    kernel_initializer=check_callable(self.kernel_initializer),
-                    bias_initializer=check_callable(self.bias_initializer) if i < self.n_MADEs - 1 else check_callable(self.last_bias_initializer),
-                    kernel_regularizer=check_callable(self.kernel_regularizer),
-                    bias_regularizer=check_callable(self.bias_regularizer),
+                    kernel_initializer=check_callable(
+                        self.kernel_initializer, **self.kernel_initializer_kwargs
+                    ),
+                    bias_initializer=check_callable(
+                        self.bias_initializer, **self.bias_initializer_kwargs
+                    )
+                    if i < self.n_MADEs - 1
+                    else check_callable(self.last_layer_bias_initializer),
+                    kernel_regularizer=self.kernel_regularizer,
+                    bias_regularizer=self.bias_regularizer,
                 ),
                 name=f"MADE_{i}",
             )
@@ -183,7 +197,9 @@ class ConditionalMaskedAutoregressiveFlow(MaskedAutoregressiveFlow):
             `["random", "left-to-right", "right-to-left"]`, applied to every MADE.
         n_MADEs (int): number of MADE transformations.
         kernel_initializer: initializer for weights, see `tfb.AutoregressiveNetwork`.
+        kernel_initializer_kwargs (dict): kwargs for kernel initializer.
         bias_initializer: initializer for biases, see `tfb.AutoregressiveNetwork`.
+        bias_initializer_kwargs (dict): kwargs for bias initializer.
         kernel_regularizer: weights' regularizer, see `tfb.AutoregressiveNetwork`.
         bias_regularizer: biases' regularizer, see `tfb.AutoregressiveNetwork`.
 
@@ -208,8 +224,10 @@ class ConditionalMaskedAutoregressiveFlow(MaskedAutoregressiveFlow):
         input_order="random",
         n_MADEs=10,
         kernel_initializer="glorot_uniform",
+        kernel_initializer_kwargs={},
         bias_initializer="zeros",
-        last_bias_initializer=None,
+        bias_initializer_kwargs={},
+        last_layer_bias_initializer=None,
         kernel_regularizer=None,
         bias_regularizer=None,
     ):
@@ -223,11 +241,13 @@ class ConditionalMaskedAutoregressiveFlow(MaskedAutoregressiveFlow):
         self.n_MADEs = n_MADEs
 
         self.kernel_initializer = kernel_initializer
+        self.kernel_initializer_kwargs = kernel_initializer_kwargs
         self.bias_initializer = bias_initializer
-        if last_bias_initializer is None:
-            self.last_bias_initializer = bias_initializer
+        self.bias_initializer_kwargs = bias_initializer_kwargs
+        if last_layer_bias_initializer is None:
+            self.last_layer_bias_initializer = bias_initializer
         else:
-            self.last_bias_initializer = last_bias_initializer
+            self.last_layer_bias_initializer = last_layer_bias_initializer
         self.kernel_regularizer = kernel_regularizer
         self.bias_regularizer = bias_regularizer
         self._configure()
@@ -259,10 +279,16 @@ class ConditionalMaskedAutoregressiveFlow(MaskedAutoregressiveFlow):
                     * (self.n_dim + self.cond_n_dim),
                     activation=self.activation,
                     input_order=self.input_order,
-                    kernel_initializer=check_callable(self.kernel_initializer),
-                    bias_initializer=check_callable(self.bias_initializer) if i < self.n_MADEs - 1 else check_callable(self.last_bias_initializer),
-                    kernel_regularizer=check_callable(self.kernel_regularizer),
-                    bias_regularizer=check_callable(self.bias_regularizer),
+                    kernel_initializer=check_callable(
+                        self.kernel_initializer, **self.kernel_initializer_kwargs
+                    ),
+                    bias_initializer=check_callable(
+                        self.bias_initializer, **self.bias_initializer_kwargs
+                    )
+                    if i < self.n_MADEs - 1
+                    else check_callable(self.last_layer_bias_initializer),
+                    kernel_regularizer=self.kernel_regularizer,
+                    bias_regularizer=self.bias_regularizer,
                 ),
                 name=f"MADE_{i}",
             )
