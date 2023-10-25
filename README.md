@@ -7,6 +7,7 @@ Common assumptions of the classical Bayesian inferences with the 21-cm PS are:
 - the covariance matrix is usually fixed and pre-calculated at some fiducial parameter values,
 - often only diagonal covariance is used, ignoring other correlations,
 - the Gaussian mean at each point in parameter space is estimated from only one realization.
+
 All of these assumptions mostly come in order to reduce computational costs,
 and have a potentially significant impact on the final posterior.
 
@@ -22,7 +23,7 @@ Using a NN-parameterized likelihood NDE $\mathcal{L}\_{\text{NN}}(\boldsymbol{d}
 minimize KL divergence, we recover a data-driven likelihood estimator.
 Once trained, one can use standard MCMC (or nested sampling) to recover posterior for a particular observed data $\boldsymbol{d}_{\text{obs}}$.
 
-See [examples](https://github.com/dprelogo/21cmLikelihoods/tree/main/examples) and [article](https://arxiv.org/) for more details.
+See [examples](https://github.com/dprelogo/21cmLikelihoods/tree/main/examples) and [article](https://arxiv.org/abs/2305.03074) for more details.
 
 # Implemented likelihoods
 We implement three main likelihood categories, by relaxing classical inference constraints.
@@ -142,7 +143,25 @@ For a full setup needed to run [examples](https://github.com/dprelogo/21cmLikeli
 check the the conda `environment.yml` and install it as
 ```bash
 conda env create -f environment.yml
+conda activate 21cmLikelihoods
+pip install -e .
 ```
 
 # Acknowledging
-If you use the code in your research, please cite the original paper.
+If you use the code in your research, please cite the original paper:
+```
+@ARTICLE{Prelogovic2023,
+       author = {{Prelogovi{\'c}}, David and {Mesinger}, Andrei},
+        title = "{Exploring the likelihood of the 21-cm power spectrum with simulation-based inference}",
+      journal = {\mnras},
+     keywords = {cosmology: theory, dark ages, reionization, first stars, methods: data analysis, methods: statistical, Astrophysics - Cosmology and Nongalactic Astrophysics, Astrophysics - Astrophysics of Galaxies},
+         year = 2023,
+        month = jul,
+          doi = {10.1093/mnras/stad2027},
+archivePrefix = {arXiv},
+       eprint = {2305.03074},
+ primaryClass = {astro-ph.CO},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2023MNRAS.tmp.1955P},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+```
